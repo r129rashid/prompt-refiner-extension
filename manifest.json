@@ -2,7 +2,12 @@
   "manifest_version": 3,
   "name": "Promptify",
   "description": "Rewrite rough prompts into clear, specific, high-quality prompts — anywhere in the browser.",
-  "version": "1.1.0",
+  "version": "1.2.0",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_title": "Promptify"
@@ -11,6 +16,18 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["storage", "contextMenus", "scripting", "activeTab"],
+  "side_panel": {
+    "default_path": "panel.html"
+  },
+  "commands": {
+    "refine-selection": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+U",
+        "mac": "Command+Shift+U"
+      },
+      "description": "Refine the selected text"
+    }
+  },
+  "permissions": ["storage", "contextMenus", "scripting", "activeTab", "notifications", "sidePanel"],
   "host_permissions": ["https://openrouter.ai/*", "https://api.anthropic.com/*"]
 }

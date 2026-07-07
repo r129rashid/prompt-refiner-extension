@@ -19,12 +19,19 @@
     <button id="save-keys" class="primary">Save keys</button>
   </section>
 
-  <section class="card" id="defaults-card">
+  <section class="card" id="profiles-card">
     <div class="card-head">
-      <h2>Default answers</h2>
-      <button id="edit-defaults" class="icon" title="Edit defaults" hidden>✎</button>
+      <h2>Profiles</h2>
+      <button id="edit-profile" class="icon" title="Edit profile" hidden>✎</button>
     </div>
-    <p class="muted">Pre-filled in the popup and used by the right-click "Refine prompt" menu.</p>
+    <p class="muted">Named answer sets for the refinement questions. The active profile pre-fills the popup and powers the right-click menu; sites can pin their own (see below).</p>
+    <div class="row">
+      <select id="profile-select"></select>
+      <button id="new-profile">New</button>
+      <button id="set-active">Set active</button>
+      <button id="delete-profile" class="danger">Delete</button>
+    </div>
+    <label class="block">Profile name <input id="profile-name"></label>
     <div class="grid">
       <label class="block">Role <select id="role"></select></label>
       <label class="block">Format <select id="format"></select></label>
@@ -35,10 +42,43 @@
     <div id="extras" class="extras"></div>
     <div class="grid">
       <label class="block">Provider <select id="provider"></select></label>
-      <label class="block">Model <select id="model"></select></label>
+      <label class="block">Model
+        <input id="model-filter" class="mini" placeholder="Filter models…">
+        <select id="model"></select>
+      </label>
     </div>
-    <button id="save-defaults" class="primary">Save defaults</button>
-    <button id="clear-defaults">Clear</button>
+    <label class="check"><input type="checkbox" id="free-only"> free models only</label>
+    <br>
+    <button id="save-profile" class="primary">Save profile</button>
+  </section>
+
+  <section class="card">
+    <h2>Models</h2>
+    <p class="muted" id="models-status">The OpenRouter model list refreshes automatically every 24 hours.</p>
+    <button id="refresh-models">Refresh model list</button>
+  </section>
+
+  <section class="card">
+    <h2>Keyboard shortcut</h2>
+    <p class="muted">Select text in any input and press <strong id="shortcut-combo">Ctrl+Shift+U</strong> (⌘⇧U on Mac) to refine it in place. To change the binding, paste this into your address bar:</p>
+    <input readonly value="chrome://extensions/shortcuts" id="shortcut-url">
+  </section>
+
+  <section class="card">
+    <h2>Site profiles</h2>
+    <p class="muted">Sites pinned to a profile via the popup's "use on this site" checkbox.</p>
+    <ul id="site-map" class="list"></ul>
+  </section>
+
+  <section class="card">
+    <h2>Library</h2>
+    <p class="muted">Saved snippets. The 10 most recently used appear under right-click → Insert snippet.</p>
+    <ul id="library" class="list"></ul>
+    <div class="row">
+      <button id="export-lib">Export JSON</button>
+      <button id="import-lib">Import JSON</button>
+      <input type="file" id="import-file" accept="application/json" hidden>
+    </div>
   </section>
 
   <section class="card">

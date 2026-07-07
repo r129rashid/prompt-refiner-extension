@@ -4,11 +4,19 @@ Rewrite rough prompts into clear, specific, high-quality prompts — anywhere in
 
 ## Features
 
-- **Toolbar popup** — paste a rough prompt, pick refinement options (role, format, length, tone, audience, extras), hit Refine, copy the result.
-- **Right-click menu** — select rough text in any input on any page, right-click → "Refine prompt", and the selection is replaced in place with the refined version (falls back to clipboard copy if the field isn't editable).
-- **Settings page** — enter your OpenRouter and/or Anthropic API key, save default answers for the refinement questions (used to pre-fill the popup and the context menu), and edit the underlying meta-prompt template.
+- **Toolbar popup** — paste a rough prompt, pick refinement options, hit Refine, copy the result. Output streams in live.
+- **Right-click menu** — select rough text in any input, right-click → "Refine prompt" (with a submenu per profile). A before/after preview lets you Accept or Discard, with a 5-second Undo after replacing.
+- **Keyboard shortcut** — `Ctrl+Shift+U` (`⌘⇧U` on Mac) refines the current selection without the mouse. Rebind at `chrome://extensions/shortcuts`.
+- **Profiles** — named answer sets ("Coding", "Work email", …) managed in Settings; switchable in the popup and the right-click submenu.
+- **Site pins** — "use on this site" remembers a profile per hostname and auto-selects it there.
+- **Live model list** — OpenRouter models fetched daily (with a free-only filter), so the dropdown never goes stale.
+- **Tweak it** — iterate on a result ("make it shorter", "more formal") without starting over.
+- **×3 variations** — three alternative refinements at different temperatures; pick the best.
+- **Prompt library** — save refinements as named snippets; insert them via right-click → Insert snippet; export/import as JSON.
+- **Side panel** — open Promptify in Chrome's docked side panel so in-flight refines survive clicking into the page.
+- **Settings page** — API keys, profiles, site pins, library, and the editable meta-prompt template.
 
-No server, no login, no build step. API keys and history stay in the browser's extension storage; default answers and the template sync across your Chrome profile via `chrome.storage.sync`.
+No server, no login, no build step. API keys and history stay in the browser's extension storage; profiles, site pins, and the template sync across your Chrome profile via `chrome.storage.sync`.
 
 ## Install (unpacked)
 
@@ -19,10 +27,14 @@ No server, no login, no build step. API keys and history stay in the browser's e
 ## Structure
 
 ```
-manifest.json   — Manifest V3 config
-shared.js       — presets, meta-prompt template, provider calls, storage helpers
-background.js   — service worker: context-menu registration + in-page replacement
-popup.html/js   — toolbar popup UI
-options.html/js — settings page (API keys, defaults, template)
+manifest.json   — Manifest V3 config (commands, side panel, notifications)
+shared.js       — presets, template, provider calls + SSE streaming, storage helpers
+background.js   — service worker: menus, hotkey, preview/undo overlay injection
+popup.html/js   — toolbar popup UI (also reused by panel.html for the side panel)
+options.html/js — settings: keys, profiles, models, site pins, library, template
 style.css       — shared styling
+test.js         — node test.js → smoke-checks the pure helpers
+mvp3.md         — requirements doc for this feature set
 ```
+
+See [mvp3.md](mvp3.md) for the full requirements and edge cases.
