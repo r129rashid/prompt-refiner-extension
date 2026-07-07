@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Prompt Refiner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="popup">
+  <textarea id="input" rows="4" placeholder="Paste your rough prompt…"></textarea>
+
+  <details class="opts">
+    <summary>Refinement options</summary>
+    <div class="grid">
+      <label class="block">Role <select id="role"></select></label>
+      <label class="block">Format <select id="format"></select></label>
+      <label class="block">Length <select id="length"></select></label>
+      <label class="block">Tone <select id="tone"></select></label>
+      <label class="block">Audience <select id="audience"></select></label>
+    </div>
+    <div id="extras" class="extras"></div>
+    <div class="grid">
+      <label class="block">Provider <select id="provider"></select></label>
+      <label class="block">Model <select id="model"></select></label>
+    </div>
+  </details>
+
+  <button id="refine-btn" class="primary">Refine</button>
+  <div id="error" class="error"></div>
+
+  <div id="result" class="hidden">
+    <pre id="output" class="output"></pre>
+    <button id="copy-btn">Copy</button>
+  </div>
+
+  <details class="opts">
+    <summary>History</summary>
+    <ul id="history"></ul>
+  </details>
+
+  <footer>
+    <button id="open-options" class="link">⚙ Settings</button>
+  </footer>
+
+  <script src="shared.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
