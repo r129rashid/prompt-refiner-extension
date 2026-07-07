@@ -1,4 +1,4 @@
-# Prompt Refiner — Chrome Extension
+# Promptify — Chrome Extension
 
 Rewrite rough prompts into clear, specific, high-quality prompts — anywhere in the browser.
 

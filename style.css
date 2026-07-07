@@ -34,22 +34,33 @@ h2 { font-size: .95rem; margin: 0 0 .5rem; }
 .card {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
   margin-bottom: 1rem;
 }
 
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card-head h2 { margin: 0; }
+
 textarea, select, input {
   width: 100%;
-  padding: .5rem .55rem;
+  padding: .5rem .6rem;
   background: var(--inset);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   font: inherit;
-  transition: border-color .12s ease, box-shadow .12s ease;
+  transition: border-color .12s ease, box-shadow .12s ease, opacity .12s ease;
 }
 textarea { resize: vertical; }
+input:disabled, select:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
 textarea:focus, select:focus, input:focus {
   outline: none;
   border-color: var(--accent);
@@ -81,13 +92,27 @@ button {
   font: inherit;
   padding: .5rem .95rem;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--panel);
   color: var(--text);
   cursor: pointer;
-  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
 }
 button:hover { background: #1c2030; }
+button[hidden] { display: none; }
+
+button.icon {
+  padding: .25rem .55rem;
+  font-size: .85rem;
+  border-radius: 9px;
+  background: var(--inset);
+  color: var(--muted);
+}
+button.icon:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--inset);
+}
 
 button.primary {
   width: 100%;
@@ -130,7 +155,7 @@ button.link:hover { color: var(--text); background: none; }
   padding: .75rem;
   background: var(--inset);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 12px;
   white-space: pre-wrap;
   word-wrap: break-word;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -172,7 +197,7 @@ footer { margin-top: .75rem; text-align: right; }
   border-left: 3px solid var(--accent);
   color: var(--text);
   padding: .5rem 1rem;
-  border-radius: 8px;
+  border-radius: 999px;
   opacity: 0;
   pointer-events: none;
   transition: opacity .2s;

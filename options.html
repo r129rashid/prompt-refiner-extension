@@ -2,22 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Prompt Refiner — Settings</title>
+  <title>Promptify — Settings</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="options">
-  <h1>Prompt Refiner <span class="accent">Settings</span></h1>
+  <h1>Promptify <span class="accent">Settings</span></h1>
 
-  <section class="card">
-    <h2>API keys</h2>
+  <section class="card" id="keys-card">
+    <div class="card-head">
+      <h2>API keys</h2>
+      <button id="edit-keys" class="icon" title="Edit keys" hidden>✎</button>
+    </div>
     <p class="muted">Stored only in this browser's extension storage. Only the provider you use needs a key.</p>
     <label class="block">OpenRouter key <input id="key-openrouter" type="password" placeholder="sk-or-…"></label>
     <label class="block">Anthropic key <input id="key-anthropic" type="password" placeholder="sk-ant-…"></label>
     <button id="save-keys" class="primary">Save keys</button>
   </section>
 
-  <section class="card">
-    <h2>Default answers</h2>
+  <section class="card" id="defaults-card">
+    <div class="card-head">
+      <h2>Default answers</h2>
+      <button id="edit-defaults" class="icon" title="Edit defaults" hidden>✎</button>
+    </div>
     <p class="muted">Pre-filled in the popup and used by the right-click "Refine prompt" menu.</p>
     <div class="grid">
       <label class="block">Role <select id="role"></select></label>
