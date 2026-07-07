@@ -6,9 +6,10 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="options">
-  <h1>Promptify <span class="accent">Settings</span></h1>
+  <h1><span class="wordmark">Promptify</span> Settings</h1>
 
   <section class="card" id="keys-card">
+    <div class="eyebrow">Configuration</div>
     <div class="card-head">
       <h2>API keys</h2>
       <button id="edit-keys" class="icon" title="Edit keys" hidden>✎</button>
@@ -20,6 +21,7 @@
   </section>
 
   <section class="card" id="profiles-card">
+    <div class="eyebrow">Refinement</div>
     <div class="card-head">
       <h2>Profiles</h2>
       <button id="edit-profile" class="icon" title="Edit profile" hidden>✎</button>
@@ -53,25 +55,29 @@
   </section>
 
   <section class="card">
-    <h2>Models</h2>
+    <div class="eyebrow">Catalog</div>
+      <h2>Models</h2>
     <p class="muted" id="models-status">The OpenRouter model list refreshes automatically every 24 hours.</p>
     <button id="refresh-models">Refresh model list</button>
   </section>
 
   <section class="card">
-    <h2>Keyboard shortcut</h2>
+    <div class="eyebrow">Productivity</div>
+      <h2>Keyboard shortcut</h2>
     <p class="muted">Select text in any input and press <strong id="shortcut-combo">Ctrl+Shift+U</strong> (⌘⇧U on Mac) to refine it in place. To change the binding, paste this into your address bar:</p>
     <input readonly value="chrome://extensions/shortcuts" id="shortcut-url">
   </section>
 
   <section class="card">
-    <h2>Site profiles</h2>
+    <div class="eyebrow">Automation</div>
+      <h2>Site profiles</h2>
     <p class="muted">Sites pinned to a profile via the popup's "use on this site" checkbox.</p>
     <ul id="site-map" class="list"></ul>
   </section>
 
   <section class="card">
-    <h2>Library</h2>
+    <div class="eyebrow">Collection</div>
+      <h2>Library</h2>
     <p class="muted">Saved snippets. The 10 most recently used appear under right-click → Insert snippet.</p>
     <ul id="library" class="list"></ul>
     <div class="row">
@@ -82,7 +88,8 @@
   </section>
 
   <section class="card">
-    <h2>Meta-prompt template</h2>
+    <div class="eyebrow">Advanced</div>
+      <h2>Meta-prompt template</h2>
     <p class="muted">Placeholders: {{ROLE}} {{FORMAT}} {{LENGTH}} {{TONE}} {{AUDIENCE}} {{EXTRAS}}</p>
     <textarea id="template" rows="18"></textarea>
     <button id="save-template" class="primary">Save template</button>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Promptify — store screenshots</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* Screenshot stage: 1280x800 scenes composed from real UI styles. */
+  html, body { margin: 0; padding: 0; width: 1280px; height: 800px; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; gap: 56px; position: relative; }
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 70% 30%, rgba(109,111,243,.14), transparent 65%);
+    pointer-events: none;
+  }
+  .headline { max-width: 420px; position: relative; }
+  .headline .mark { width: 56px; height: 56px; border-radius: 14px; margin-bottom: 24px; }
+  .headline h2 { font-size: 40px; line-height: 1.15; margin: 0 0 16px; }
+  .headline p { font-size: 16px; color: var(--muted); line-height: 1.6; margin: 0; text-wrap: pretty; }
+  .device {
+    width: 400px;
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 24px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04);
+    position: relative;
+  }
+  .device.wide { width: 560px; }
+  .scene { display: none; }
+  .scene.on { display: flex; align-items: center; justify-content: center; gap: 56px; width: 100%; height: 100%; position: relative; }
+
+  /* fake editor page behind the overlay scene */
+  .editor {
+    width: 620px; background: #f6f6f8; border-radius: 14px; padding: 28px; color: #333;
+    font: 14px/1.6 -apple-system, sans-serif; box-shadow: 0 24px 80px rgba(0,0,0,.6);
+  }
+  .editor .bar { height: 10px; width: 120px; background: #d9d9df; border-radius: 5px; margin-bottom: 18px; }
+  .editor .field { background: #fff; border: 1px solid #d5d5dc; border-radius: 10px; padding: 14px; min-height: 90px; }
+  .editor .sel { background: #b9c4f7; }
+  .overlaybox { position: absolute; right: -70px; bottom: -70px; width: 480px; background: var(--panel);
+    border: 1px solid var(--border-strong); border-radius: 14px; box-shadow: 0 24px 80px rgba(0,0,0,.7);
+    font: 13px/1.5 -apple-system, sans-serif; overflow: hidden; }
+  .overlaybox .hd { padding: 12px 16px; font-family: var(--serif); font-weight: 600;
+    background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+    border-bottom: 1px solid var(--border); }
+  .overlaybox .panes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 16px; }
+  .overlaybox .lbl { font-size: 10px; font-weight: 600; letter-spacing: .08em; color: var(--muted);
+    text-transform: uppercase; margin-bottom: 6px; }
+  .overlaybox .txt { background: var(--inset); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; font: 12px/1.5 ui-monospace, Menlo, monospace; color: var(--text); }
+  .overlaybox .ft { display: flex; gap: 8px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--border); }
+  .overlaybox .hint { flex: 1; color: var(--muted); font-size: 11px; }
+
+  /* promo tile scene */
+  body.tile, body.tile.scene-holder { width: 440px; height: 280px; }
+  .tilebox { text-align: center; position: relative; }
+  .tilebox .mark { width: 64px; height: 64px; border-radius: 16px; margin-bottom: 16px; }
+  .tilebox .wordmark { font-size: 40px; display: block; }
+  .tilebox p { color: var(--muted); font-family: var(--serif); font-size: 15px; margin: 8px 0 0; }
+</style>
+</head>
+<body>
+
+<!-- Scene 1: popup with a finished refinement -->
+<div class="scene" id="s1">
+  <div class="headline">
+    <img class="mark" src="../icons/icon128.png" alt="">
+    <h2 class="wordmark">Rough thought in. Refined prompt out.</h2>
+    <p>Promptify rewrites vague prompts into clear, specific, high-quality ones — with your own API key, on any site.</p>
+  </div>
+  <div class="device">
+    <header class="app-head">
+      <h1 class="wordmark">Promptify</h1>
+      <button class="icon">❐</button><button class="icon">⚙</button>
+    </header>
+    <div class="row" style="margin-bottom:8px"><select><option>Writing (active)</option></select>
+      <label class="check site"><input type="checkbox" checked> use on gmail.com</label></div>
+    <textarea rows="2">write about stop loss</textarea>
+    <div class="row action" style="margin-top:12px">
+      <button class="primary" style="margin-top:0">Refine</button>
+      <label class="check x3"><input type="checkbox"> ×3</label>
+    </div>
+    <pre class="output">Act as a financial analyst specializing in retail investing. Write a step-by-step guide explaining what a stop-loss order is and how to use one. Assume the reader is a complete beginner with no trading experience. Use simple language, define technical terms on first use, and include one concrete numerical example. Keep the total length under 300 words. Avoid jargon and do not give personalized investment advice.</pre>
+    <div class="row"><button>Copy</button><button>Save to library</button></div>
+    <div class="row"><input placeholder="Tweak it… e.g. make it shorter"><button title="Apply">↻</button></div>
+  </div>
+</div>
+
+<!-- Scene 2: preview overlay on a fake editor -->
+<div class="scene" id="s2">
+  <div class="headline">
+    <img class="mark" src="../icons/icon128.png" alt="">
+    <h2 class="wordmark">Preview every change. Undo anything.</h2>
+    <p>Right-click selected text on any site. Review original vs refined side by side, accept with Enter — and undo with one click.</p>
+  </div>
+  <div style="position:relative">
+    <div class="editor">
+      <div class="bar"></div>
+      <div class="field"><span class="sel">explain machine learning to my team</span></div>
+    </div>
+    <div class="overlaybox">
+      <div class="hd">Promptify</div>
+      <div class="panes">
+        <div><div class="lbl">Original</div><div class="txt">explain machine learning to my team</div></div>
+        <div><div class="lbl">Refined</div><div class="txt">Act as a technical educator. Explain machine learning to a team of non-technical professionals. Use everyday analogies, avoid jargon, and end with three practical examples relevant to business workflows…</div></div>
+      </div>
+      <div class="ft"><span class="hint">Enter to accept · Esc to discard</span>
+        <button>Discard</button><button class="primary" style="width:auto;margin:0">Accept</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Scene 3: profiles in settings -->
+<div class="scene" id="s3">
+  <div class="headline">
+    <img class="mark" src="../icons/icon128.png" alt="">
+    <h2 class="wordmark">Profiles for every context.</h2>
+    <p>Coding, work email, blog posts — save answer sets once and Promptify picks the right one per site, automatically.</p>
+  </div>
+  <div class="device wide">
+    <section class="card" style="margin-bottom:0">
+      <div class="eyebrow">Refinement</div>
+      <div class="card-head"><h2>Profiles</h2><button class="icon">✎</button></div>
+      <div class="row"><select><option>Coding (active)</option></select>
+        <button>New</button><button>Set active</button><button class="danger">Delete</button></div>
+      <div class="grid" style="margin-top:12px">
+        <label class="block">Role <select disabled><option>Software Engineer</option></select></label>
+        <label class="block">Format <select disabled><option>Code with comments</option></select></label>
+        <label class="block">Tone <select disabled><option>Professional</option></select></label>
+        <label class="block">Audience <select disabled><option>Expert</option></select></label>
+      </div>
+      <ul class="list" style="margin-top:16px">
+        <li class="librow"><span class="grow">github.com → Coding</span><button class="icon">✕</button></li>
+        <li class="librow"><span class="grow">mail.google.com → Work email</span><button class="icon">✕</button></li>
+        <li class="librow"><span class="grow">chat.openai.com → Writing</span><button class="icon">✕</button></li>
+      </ul>
+    </section>
+  </div>
+</div>
+
+<!-- Scene 4: x3 variations -->
+<div class="scene" id="s4">
+  <div class="headline">
+    <img class="mark" src="../icons/icon128.png" alt="">
+    <h2 class="wordmark">Three takes. Pick the best.</h2>
+    <p>×3 mode generates three alternative refinements at different temperatures — compare framings and keep the winner.</p>
+  </div>
+  <div class="device">
+    <header class="app-head"><h1 class="wordmark">Promptify</h1><button class="icon">⚙</button></header>
+    <div class="card vcard" style="margin-bottom:8px"><div class="lbl">A</div>
+      <div class="vtxt">Act as a data analyst. Summarize the attached quarterly sales figures in five bullet points ordered by revenue impact…</div><button>Use this</button></div>
+    <div class="card vcard" style="margin-bottom:8px"><div class="lbl">B</div>
+      <div class="vtxt">Act as a business intelligence consultant. Produce an executive summary of Q4 sales: three wins, three risks, one recommendation…</div><button>Use this</button></div>
+    <div class="card vcard"><div class="lbl">C</div>
+      <div class="vtxt">Act as a financial storyteller. Turn the Q4 numbers into a one-paragraph narrative a non-technical board can absorb in 30 seconds…</div><button>Use this</button></div>
+  </div>
+</div>
+
+<!-- Scene 5: 440x280 promo tile -->
+<div class="scene" id="s5">
+  <div class="tilebox">
+    <img class="mark" src="../icons/icon128.png" alt="">
+    <span class="wordmark">Promptify</span>
+    <p>Rough thought in. Refined prompt out.</p>
+  </div>
+</div>
+
+<!-- Scene 6: device-only hero shot for the landing page -->
+<div class="scene" id="s6">
+  <div class="device">
+    <header class="app-head">
+      <h1 class="wordmark">Promptify</h1>
+      <button class="icon">❐</button><button class="icon">⚙</button>
+    </header>
+    <div class="row" style="margin-bottom:8px"><select><option>Writing (active)</option></select>
+      <label class="check site"><input type="checkbox" checked> use on gmail.com</label></div>
+    <textarea rows="2">write about stop loss</textarea>
+    <div class="row action" style="margin-top:12px">
+      <button class="primary" style="margin-top:0">Refine</button>
+      <label class="check x3"><input type="checkbox"> ×3</label>
+    </div>
+    <pre class="output">Act as a financial analyst specializing in retail investing. Write a step-by-step guide explaining what a stop-loss order is and how to use one. Assume the reader is a complete beginner with no trading experience. Use simple language, define technical terms on first use, and include one concrete numerical example. Keep the total length under 300 words. Avoid jargon and do not give personalized investment advice.</pre>
+    <div class="row"><button>Copy</button><button>Save to library</button></div>
+    <div class="row"><input placeholder="Tweak it… e.g. make it shorter"><button title="Apply">↻</button></div>
+  </div>
+</div>
+
+<script>
+  const scene = new URLSearchParams(location.search).get('scene') || '1';
+  document.getElementById('s' + scene).classList.add('on');
+  if (scene === '5') { document.body.style.width = '440px'; document.body.style.height = '280px'; }
+  if (scene === '6') { document.body.style.width = '520px'; document.body.style.height = '660px'; }
+</script>
+</body>
+</html>

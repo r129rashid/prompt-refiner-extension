@@ -145,8 +145,8 @@ function toastInPage(message, sticky) {
     t.id = '__pf_toast';
     t.style.cssText =
       'position:fixed;bottom:16px;right:16px;z-index:2147483647;max-width:320px;' +
-      'background:#151821;color:#e8eaf0;padding:10px 14px;border-radius:8px;' +
-      'border-left:3px solid #6366f1;font:13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;' +
+      'background:#12141c;color:#eceef4;padding:10px 14px;border-radius:8px;' +
+      'border-left:3px solid #6d6ff3;font:13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;' +
       'box-shadow:0 4px 16px rgba(0,0,0,.45);transition:opacity .2s;opacity:0';
     document.documentElement.appendChild(t);
     requestAnimationFrame(() => (t.style.opacity = '1'));
@@ -167,8 +167,8 @@ function insertTextInPage(text) {
     const t = document.createElement('div');
     t.style.cssText =
       'position:fixed;bottom:16px;right:16px;z-index:2147483647;max-width:320px;' +
-      'background:#151821;color:#e8eaf0;padding:10px 14px;border-radius:8px;' +
-      'border-left:3px solid #6366f1;font:13px/1.4 -apple-system,sans-serif;' +
+      'background:#12141c;color:#eceef4;padding:10px 14px;border-radius:8px;' +
+      'border-left:3px solid #6d6ff3;font:13px/1.4 -apple-system,sans-serif;' +
       'box-shadow:0 4px 16px rgba(0,0,0,.45)';
     t.textContent = msg;
     document.documentElement.appendChild(t);
@@ -205,24 +205,24 @@ function showPreviewInPage(original, refined) {
   root.innerHTML = `
     <style>
       .box{position:fixed;bottom:16px;right:16px;z-index:2147483647;width:min(560px,calc(100vw - 32px));
-        max-height:70vh;display:flex;flex-direction:column;background:#151821;color:#e8eaf0;
-        border:1px solid #262b38;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.55);
+        max-height:70vh;display:flex;flex-direction:column;background:#12141c;color:#eceef4;
+        border:1px solid rgba(148,153,180,.18);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.55);
         font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-      .hd{padding:10px 14px;font-weight:600;border-bottom:1px solid #262b38;
-        background:linear-gradient(135deg,#6366f1,#a855f7);-webkit-background-clip:text;
+      .hd{padding:10px 14px;font-weight:600;border-bottom:1px solid rgba(148,153,180,.18);
+        background:linear-gradient(135deg,#6d6ff3,#a06bf5);-webkit-background-clip:text;
         background-clip:text;color:transparent}
       .panes{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 14px;overflow-y:auto}
-      .lbl{font-size:11px;font-weight:600;color:#8a90a3;margin-bottom:4px;text-transform:uppercase}
-      .txt{background:#0a0c10;border:1px solid #262b38;border-radius:10px;padding:8px;
+      .lbl{font-size:11px;font-weight:600;color:#9298ad;margin-bottom:4px;text-transform:uppercase}
+      .txt{background:#07080c;border:1px solid rgba(148,153,180,.18);border-radius:10px;padding:8px;
         white-space:pre-wrap;word-wrap:break-word;font-family:ui-monospace,Menlo,monospace;
         font-size:12px;max-height:38vh;overflow-y:auto}
-      .more{background:none;border:none;color:#6366f1;cursor:pointer;font-size:11px;padding:2px 0}
-      .ft{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid #262b38}
-      .hint{flex:1;color:#8a90a3;font-size:11px}
-      button.b{font:inherit;padding:7px 14px;border-radius:10px;border:1px solid #262b38;
-        background:#151821;color:#e8eaf0;cursor:pointer}
-      button.b:hover{background:#1c2030}
-      button.acc{border:none;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;font-weight:600}
+      .more{background:none;border:none;color:#6d6ff3;cursor:pointer;font-size:11px;padding:2px 0}
+      .ft{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid rgba(148,153,180,.18)}
+      .hint{flex:1;color:#9298ad;font-size:11px}
+      button.b{font:inherit;padding:7px 14px;border-radius:10px;border:1px solid rgba(148,153,180,.18);
+        background:#12141c;color:#eceef4;cursor:pointer}
+      button.b:hover{background:#191c27}
+      button.acc{border:none;background:linear-gradient(135deg,#6d6ff3,#a06bf5);color:#fff;font-weight:600}
       @media (max-width:520px){.panes{grid-template-columns:1fr}}
     </style>
     <div class="box" role="dialog" aria-label="Promptify preview">
@@ -286,8 +286,8 @@ function showPreviewInPage(original, refined) {
     const t = document.createElement('div');
     t.style.cssText =
       'position:fixed;bottom:16px;right:16px;z-index:2147483647;max-width:340px;display:flex;gap:10px;' +
-      'align-items:center;background:#151821;color:#e8eaf0;padding:10px 14px;border-radius:8px;' +
-      'border-left:3px solid #6366f1;font:13px/1.4 -apple-system,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.45)';
+      'align-items:center;background:#12141c;color:#eceef4;padding:10px 14px;border-radius:8px;' +
+      'border-left:3px solid #6d6ff3;font:13px/1.4 -apple-system,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.45)';
     t.appendChild(document.createTextNode(msg));
     if (undoFn) {
       const u = document.createElement('button');

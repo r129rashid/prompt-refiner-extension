@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy — Promptify</title>
+<link rel="icon" href="icon32.png">
+<style>
+  :root {
+    --bg: #0a0b0f; --panel: #12141c;
+    --border: rgba(148,153,180,.14);
+    --text: #eceef4; --muted: #9298ad;
+    --grad: linear-gradient(135deg, #6d6ff3, #a06bf5);
+    --serif: ui-serif, Georgia, 'Times New Roman', serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 16px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: var(--text);
+    background: var(--bg);
+  }
+  main { max-width: 680px; margin: 0 auto; padding: 64px 24px 96px; }
+  .wordmark {
+    font-family: var(--serif); font-weight: 600;
+    background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-decoration: none;
+  }
+  h1 { font-family: var(--serif); font-size: 36px; margin: 24px 0 4px; text-wrap: balance; }
+  h2 { font-family: var(--serif); font-size: 20px; margin: 36px 0 8px; }
+  .date { color: var(--muted); font-size: 14px; }
+  p, li { color: var(--muted); text-wrap: pretty; }
+  strong { color: var(--text); }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--muted); }
+  th { color: var(--text); font-weight: 600; }
+  a { color: var(--muted); }
+  a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+<main>
+  <a class="wordmark" href="index.html">← Promptify</a>
+  <h1>Privacy Policy</h1>
+  <p class="date">Last updated: July 2026</p>
+
+  <p>Promptify is designed so that your data stays yours.</p>
+
+  <h2>What Promptify does with your data</h2>
+  <ul>
+    <li><strong>No collection.</strong> Promptify has no servers, no analytics, no telemetry, and no tracking of any kind. We never see your prompts, your keys, or anything else.</li>
+    <li><strong>Your prompts</strong> are sent only to the AI provider <strong>you</strong> configure — OpenRouter or Anthropic — using <strong>your own API key</strong>, and only when you explicitly trigger a refinement. Those requests are governed by the respective provider's privacy policy.</li>
+    <li><strong>Your API keys</strong> are stored in Chrome's local extension storage on your device and are sent only to the provider they belong to, as an authentication header.</li>
+    <li><strong>Your history, snippet library, and settings</strong> are stored in Chrome's extension storage. Profiles, site pins, and your template use Chrome's built-in sync storage, handled by your Google account's Chrome Sync — not by us.</li>
+  </ul>
+
+  <h2>Permissions, in plain English</h2>
+  <table>
+    <tr><th>Permission</th><th>Why</th></tr>
+    <tr><td>storage</td><td>Save your settings, history, and snippets in your browser</td></tr>
+    <tr><td>contextMenus</td><td>The right-click "Refine prompt" and "Insert snippet" menus</td></tr>
+    <tr><td>scripting + activeTab</td><td>Read your selected text and show the preview/replace UI, only when you invoke Promptify</td></tr>
+    <tr><td>notifications</td><td>Tell you when Promptify can't run on a restricted page</td></tr>
+    <tr><td>sidePanel</td><td>The optional docked side-panel mode</td></tr>
+    <tr><td>openrouter.ai / api.anthropic.com</td><td>Deliver your refinement requests with your key</td></tr>
+  </table>
+
+  <p>Promptify never reads page content in the background, never injects anything without an explicit action from you, and never transmits data to anyone other than your chosen AI provider.</p>
+
+  <h2>Contact</h2>
+  <p>Questions: <a href="https://github.com/r129rashid/prompt-refiner-extension/issues">open an issue on GitHub</a>.</p>
+</main>
+</body>
+</html>

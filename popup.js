@@ -11,6 +11,16 @@ let currentOutput = ''; // active output (tweak/copy/save act on this)
 let currentInput = '';
 
 async function init() {
+  // First-run onboarding: no API key yet → welcome card instead of the form.
+  const { keys } = await getConfig();
+  if (!keys.openrouter && !keys.anthropic) {
+    $('app').hidden = true;
+    $('onboard').hidden = false;
+    $('onboard-cta').onclick = () => chrome.runtime.openOptionsPage();
+    $('open-options').onclick = () => chrome.runtime.openOptionsPage();
+    return;
+  }
+
   populateControls();
   picker = wireModelPicker({
     provider: $('provider'),

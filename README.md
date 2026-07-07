@@ -2,6 +2,8 @@
 
 Rewrite rough prompts into clear, specific, high-quality prompts — anywhere in the browser.
 
+**Landing page:** https://r129rashid.github.io/prompt-refiner-extension/ · **Privacy:** [PRIVACY.md](PRIVACY.md) · Chrome Web Store listing: pending (see [store/CHECKLIST.md](store/CHECKLIST.md))
+
 ## Features
 
 - **Toolbar popup** — paste a rough prompt, pick refinement options, hit Refine, copy the result. Output streams in live.
