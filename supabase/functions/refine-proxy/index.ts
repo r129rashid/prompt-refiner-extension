@@ -35,6 +35,7 @@ const json = (body: unknown, status: number, origin: string | null) =>
 Deno.serve(async (req) => {
   const origin = req.headers.get('origin');
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors(origin) });
+  try {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405, origin);
 
   // --- auth: verify the caller's JWT ---
@@ -105,7 +106,11 @@ Deno.serve(async (req) => {
   }
 
   // --- confirm first successful use → credit the inviter (idempotent, capped) ---
-  await asUser.rpc('pf_confirm_first_use').catch(() => {});
+  // rpc() returns a thenable without a .catch method — await and swallow errors.
+  try { await asUser.rpc('pf_confirm_first_use'); } catch (_) { /* best-effort */ }
 
   return json({ text, credits: left }, 200, origin);
+  } catch (e) {
+    return json({ error: `Server error: ${(e as Error)?.message || e}` }, 500, origin);
+  }
 });
