@@ -16,9 +16,10 @@ Rewrite rough prompts into clear, specific, high-quality prompts — anywhere in
 - **×3 variations** — three alternative refinements at different temperatures; pick the best.
 - **Prompt library** — save refinements as named snippets; insert them via right-click → Insert snippet; export/import as JSON.
 - **Side panel** — open Promptify in Chrome's docked side panel so in-flight refines survive clicking into the page.
-- **Settings page** — API keys, profiles, site pins, library, and the editable meta-prompt template.
+- **Promptify Free (optional)** — no API key? Sign in for free refinements served by Promptify, and earn more by inviting friends (10 to start, +10 per referral). Entirely opt-in and off by default; needs a one-time backend deploy (see [supabase/DEPLOY.md](supabase/DEPLOY.md)). Bring-your-own-key mode always works without any of this.
+- **Settings page** — API keys, free credits, profiles, site pins, library, and the editable meta-prompt template.
 
-No server, no login, no build step. API keys and history stay in the browser's extension storage; profiles, site pins, and the template sync across your Chrome profile via `chrome.storage.sync`.
+Bring-your-own-key mode needs no server, no login, and no build step. API keys and history stay in the browser's extension storage; profiles, site pins, and the template sync across your Chrome profile via `chrome.storage.sync`. The optional free tier adds a Supabase backend — see [supabase/DEPLOY.md](supabase/DEPLOY.md) and [mvp4.md](mvp4.md).
 
 ## Install (unpacked)
 

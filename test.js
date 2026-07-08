@@ -4,7 +4,13 @@ const assert = require('assert');
 
 function run() {
   global.chrome = { storage: {} }; // never touched by the pure helpers
-  eval(fs.readFileSync(__dirname + '/shared.js', 'utf8'));
+  global.crypto = require('crypto').webcrypto;
+  // pf-config first so PF_* consts share the eval scope the helpers close over.
+  eval(
+    fs.readFileSync(__dirname + '/pf-config.js', 'utf8') +
+    '\n' +
+    fs.readFileSync(__dirname + '/shared.js', 'utf8')
+  );
 
   // extractDelta — SSE payload parsing per provider
   assert.strictEqual(extractDelta('openrouter', { choices: [{ delta: { content: 'hi' } }] }), 'hi');
@@ -38,6 +44,16 @@ function run() {
   assert.strictEqual(p.role, 'Lawyer');
   assert.strictEqual(p.format, 'None');
   assert.strictEqual(p.provider, 'openrouter');
+
+  // Promptify Free (MVP4) pure helpers
+  assert.strictEqual(
+    pfInviteLink('abc123'),
+    'https://r129rashid.github.io/prompt-refiner-extension/?ref=abc123'
+  );
+  assert.strictEqual(pfTokenExpired(null), true);
+  assert.strictEqual(pfTokenExpired({}), true);
+  assert.strictEqual(pfTokenExpired({ expires_at: Math.floor(Date.now() / 1000) + 3600 }), false);
+  assert.strictEqual(pfTokenExpired({ expires_at: Math.floor(Date.now() / 1000) + 10 }), true); // within skew
 
   console.log('all smoke tests passed');
 }

@@ -66,6 +66,13 @@ async function init() {
     flash('Keys saved');
   };
 
+  // free credits (MVP4) — only when the backend is configured
+  if (typeof PF_ENABLED !== 'undefined' && PF_ENABLED) {
+    $('free-card').hidden = false;
+    wireFreeCard();
+    renderFreeCard();
+  }
+
   // profiles
   await loadProfiles();
   setProfileMode(false);
@@ -118,6 +125,73 @@ async function init() {
     $('template').value = DEFAULT_TEMPLATE;
     flash('Template reset to default');
   };
+}
+
+// ---- free credits (MVP4) ----
+function wireFreeCard() {
+  $('pf-signin').onclick = () => pfAuthAction('in');
+  $('pf-signup').onclick = () => pfAuthAction('up');
+  $('pf-signout').onclick = async () => {
+    await pfSignOut();
+    renderFreeCard();
+    flash('Signed out');
+  };
+  $('pf-copy-invite').onclick = () => {
+    navigator.clipboard.writeText($('pf-invite').value);
+    flash('Invite link copied');
+  };
+}
+
+async function pfAuthAction(kind) {
+  const msg = $('pf-auth-msg');
+  msg.textContent = '';
+  const email = $('pf-email').value.trim();
+  const password = $('pf-password').value;
+  if (!email || !password) {
+    msg.textContent = 'Enter an email and password.';
+    return;
+  }
+  const btn = kind === 'in' ? $('pf-signin') : $('pf-signup');
+  btn.disabled = true;
+  try {
+    if (kind === 'in') {
+      await pfSignIn(email, password);
+      await renderFreeCard();
+      flash('Signed in');
+    } else {
+      const ref = new URLSearchParams(location.search).get('ref') || null;
+      const { signedIn } = await pfSignUp(email, password, ref);
+      if (signedIn) {
+        await renderFreeCard();
+        flash('Account created');
+      } else {
+        msg.textContent = 'Check your email to verify your account, then sign in.';
+      }
+    }
+  } catch (e) {
+    msg.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function renderFreeCard() {
+  const signedIn = await pfSignedIn();
+  $('free-signedout').hidden = signedIn;
+  $('free-signedin').hidden = !signedIn;
+  if (!signedIn) return;
+  const acct = await pfFetchAccount();
+  if (!acct) {
+    // token invalid / network — fall back to signed-out
+    await pfSignOut();
+    $('free-signedout').hidden = false;
+    $('free-signedin').hidden = true;
+    return;
+  }
+  $('pf-balance').textContent = acct.credits;
+  $('pf-email-label').textContent = acct.email || '';
+  $('pf-invite').value = acct.inviteLink;
+  $('pf-refcount').textContent = acct.referralCount;
 }
 
 // ---- profiles ----

@@ -270,6 +270,153 @@ async function saveSnippet(name, text) {
   return name;
 }
 
+// ---- Promptify Free tier (MVP4): auth + metered proxy ----------------------
+// All values come from pf-config.js (PF_SUPABASE_URL / PF_ANON_KEY / PF_LANDING /
+// PF_ENABLED). Auth uses GoTrue REST directly — no SDK, no CDN (MV3-safe).
+// pfAuth in storage.local: { access_token, refresh_token, expires_at, email, user_id, credits }
+
+function pfInviteLink(code) {
+  return `${PF_LANDING}/?ref=${encodeURIComponent(code)}`;
+}
+
+function pfTokenExpired(auth, skewSec = 60) {
+  return !auth?.expires_at || auth.expires_at * 1000 - Date.now() < skewSec * 1000;
+}
+
+async function pfGetAuth() {
+  return (await chrome.storage.local.get({ pfAuth: null })).pfAuth;
+}
+async function pfSetAuth(auth) {
+  await chrome.storage.local.set({ pfAuth: auth });
+}
+async function pfSignedIn() {
+  return !!(await pfGetAuth())?.refresh_token;
+}
+
+async function pfDeviceHash() {
+  const { pfDevice } = await chrome.storage.local.get({ pfDevice: null });
+  if (pfDevice) return pfDevice;
+  const id = crypto.randomUUID();
+  await chrome.storage.local.set({ pfDevice: id });
+  return id;
+}
+
+function pfAuthHeaders(extra) {
+  return { apikey: PF_ANON_KEY, 'Content-Type': 'application/json', ...extra };
+}
+
+function pfStoreSession(data) {
+  return pfSetAuth({
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: data.expires_at,
+    email: data.user?.email,
+    user_id: data.user?.id,
+  });
+}
+
+async function pfSignUp(email, password, ref) {
+  const res = await fetch(`${PF_SUPABASE_URL}/auth/v1/signup`, {
+    method: 'POST',
+    headers: pfAuthHeaders(),
+    body: JSON.stringify({ email, password, data: { ref: ref || null, device: await pfDeviceHash() } }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.msg || data.error_description || data.error || 'Sign-up failed.');
+  if (data.access_token) {
+    await pfStoreSession(data);
+    return { signedIn: true };
+  }
+  return { signedIn: false }; // email confirmation required
+}
+
+async function pfSignIn(email, password) {
+  const res = await fetch(`${PF_SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: pfAuthHeaders(),
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error_description || data.msg || 'Sign-in failed — check your email and password.');
+  await pfStoreSession(data);
+}
+
+async function pfSignOut() {
+  await chrome.storage.local.remove('pfAuth');
+}
+
+// Returns a valid access token, refreshing if near expiry; null if not signed in.
+async function pfGetToken() {
+  const auth = await pfGetAuth();
+  if (!auth?.refresh_token) return null;
+  if (!pfTokenExpired(auth)) return auth.access_token;
+  const res = await fetch(`${PF_SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+    method: 'POST',
+    headers: pfAuthHeaders(),
+    body: JSON.stringify({ refresh_token: auth.refresh_token }),
+  });
+  if (!res.ok) {
+    await pfSignOut(); // refresh token dead → force re-login
+    return null;
+  }
+  const data = await res.json();
+  await pfStoreSession(data);
+  return data.access_token;
+}
+
+// Reads the signed-in user's balance, referral code, and credited-referral count.
+async function pfFetchAccount() {
+  const token = await pfGetToken();
+  if (!token) return null;
+  const headers = pfAuthHeaders({ Authorization: `Bearer ${token}` });
+  const uRes = await fetch(
+    `${PF_SUPABASE_URL}/rest/v1/pf_users?select=credits,referral_code,referral_earned`,
+    { headers }
+  );
+  const rows = await uRes.json().catch(() => []);
+  const me = Array.isArray(rows) ? rows[0] : null;
+  if (!me) return null;
+  const rRes = await fetch(
+    `${PF_SUPABASE_URL}/rest/v1/pf_referrals?select=id&status=eq.credited`,
+    { headers }
+  );
+  const refs = await rRes.json().catch(() => []);
+  const auth = await pfGetAuth();
+  return {
+    email: auth?.email,
+    credits: me.credits,
+    referralCode: me.referral_code,
+    referralCount: Array.isArray(refs) ? refs.length : 0,
+    inviteLink: pfInviteLink(me.referral_code),
+  };
+}
+
+// The metered proxy — server holds the real key and decrements credits.
+async function callPromptifyProxy({ system, user, temperature, signal }) {
+  if (typeof PF_ENABLED === 'undefined' || !PF_ENABLED) throw new Error('Promptify Free isn’t configured yet.');
+  const token = await pfGetToken();
+  if (!token) throw new Error('Sign in to use Promptify Free (Settings → Free credits).');
+  let res;
+  try {
+    res = await fetch(`${PF_SUPABASE_URL}/functions/v1/refine-proxy`, {
+      method: 'POST',
+      headers: pfAuthHeaders({ Authorization: `Bearer ${token}` }),
+      body: JSON.stringify({ system, user, temperature }),
+      signal,
+    });
+  } catch (e) {
+    if (e.name === 'AbortError') throw e;
+    throw new Error('Network error — are you online?');
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Promptify Free error (${res.status})`);
+  if (typeof data.credits === 'number') {
+    const auth = await pfGetAuth();
+    if (auth) { auth.credits = data.credits; await pfSetAuth(auth); }
+  }
+  return data.text || '';
+}
+
 // ---- provider calls (§6 streaming; host_permissions bypass CORS) ----
 function buildRequest({ provider, model, system, user, key, temperature, stream }) {
   if (provider === 'openrouter') {
@@ -302,6 +449,8 @@ function buildRequest({ provider, model, system, user, key, temperature, stream 
 
 // onToken (optional) receives the accumulated text after each delta; enables SSE.
 async function callProvider({ provider, model, system, user, keys, temperature = 0.3, signal, onToken }) {
+  // Promptify Free routes through the metered proxy (non-streaming); no local key.
+  if (provider === 'promptify') return callPromptifyProxy({ system, user, temperature, signal });
   const key = keys[provider];
   if (!key) throw new Error(`No ${provider} API key — add it in Options.`);
   const streaming = typeof onToken === 'function';
@@ -420,9 +569,11 @@ function populateControls() {
   document.getElementById('extras').innerHTML = EXTRAS
     .map((e) => `<label class="check"><input type="checkbox" value="${e}"> ${e}</label>`)
     .join('');
-  document.getElementById('provider').innerHTML = Object.keys(FALLBACK_MODELS)
-    .map((p) => `<option>${p}</option>`)
-    .join('');
+  const provs = Object.keys(FALLBACK_MODELS).map((p) => `<option value="${p}">${p}</option>`);
+  if (typeof PF_ENABLED !== 'undefined' && PF_ENABLED) {
+    provs.push('<option value="promptify">Promptify Free</option>');
+  }
+  document.getElementById('provider').innerHTML = provs.join('');
 }
 
 // Wires the model <select> to the live list with a text filter + free-only toggle.
@@ -432,6 +583,15 @@ function wireModelPicker(els) {
 
   function render(keepModel) {
     const provider = els.provider.value;
+    // Promptify Free picks the model server-side — no chooser.
+    if (provider === 'promptify') {
+      els.filter.hidden = true;
+      els.free.closest('label').hidden = true;
+      els.model.innerHTML = '<option value="auto">Managed free model</option>';
+      els.model.disabled = true;
+      return;
+    }
+    els.model.disabled = false;
     const isOR = provider === 'openrouter';
     els.filter.hidden = !isOR;
     els.free.closest('label').hidden = !isOR;
@@ -492,7 +652,7 @@ function applyParams(p, picker) {
   document.querySelectorAll('#extras input').forEach((c) => {
     c.checked = (p.extras || []).includes(c.value);
   });
-  if (p.provider && FALLBACK_MODELS[p.provider]) {
+  if (p.provider && (FALLBACK_MODELS[p.provider] || p.provider === 'promptify')) {
     document.getElementById('provider').value = p.provider;
   }
   if (picker) picker.render(p.model);

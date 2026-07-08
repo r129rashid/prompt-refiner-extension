@@ -19,7 +19,8 @@ function openSettings() {
 async function init() {
   // First-run onboarding: no API key yet → welcome card instead of the form.
   const { keys } = await getConfig();
-  if (!keys.openrouter && !keys.anthropic) {
+  const pfIn = typeof PF_ENABLED !== 'undefined' && PF_ENABLED ? await pfSignedIn() : false;
+  if (!keys.openrouter && !keys.anthropic && !pfIn) {
     $('app').hidden = true;
     $('onboard').hidden = false;
     $('onboard-cta').onclick = openSettings;
@@ -110,12 +111,19 @@ async function init() {
     if (e.key === 'Enter' && $('tweak').value.trim()) runTweak();
   };
 
-  // Variations paid-model note
+  // Variations cost note — provider-aware.
   const updatePaidNote = () => {
-    $('paid-note').hidden = !($('variations').checked && !$('model').value.endsWith(':free'));
+    const on = $('variations').checked;
+    const provider = $('provider').value;
+    let note = '';
+    if (on && provider === 'promptify') note = '×3 spends 3 free credits.';
+    else if (on && !$('model').value.endsWith(':free')) note = '×3 sends 3 requests to a paid model.';
+    $('paid-note').textContent = note;
+    $('paid-note').hidden = !note;
   };
   $('variations').onchange = updatePaidNote;
   $('model').addEventListener('change', updatePaidNote);
+  $('provider').addEventListener('change', updatePaidNote);
 
   $('refine-btn').onclick = runRefine;
 

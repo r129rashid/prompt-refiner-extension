@@ -21,6 +21,36 @@
     <button id="save-keys" class="primary">Save keys</button>
   </section>
 
+  <section class="card" id="free-card" hidden>
+    <div class="eyebrow">Free tier</div>
+    <div class="card-head">
+      <h2>Free credits</h2>
+    </div>
+    <p class="muted">No API key? Get free refinements powered by Promptify, and earn more by inviting friends. Optional — your BYO-key setup above always works without signing in.</p>
+
+    <div id="free-signedout">
+      <label class="block">Email <input id="pf-email" type="email" placeholder="you@example.com"></label>
+      <label class="block">Password <input id="pf-password" type="password" placeholder="at least 6 characters"></label>
+      <div class="row">
+        <button id="pf-signin" class="primary">Sign in</button>
+        <button id="pf-signup">Create account</button>
+      </div>
+      <div id="pf-auth-msg" class="muted"></div>
+    </div>
+
+    <div id="free-signedin" hidden>
+      <p><strong id="pf-balance">—</strong> free refinements left · <span id="pf-email-label" class="muted"></span></p>
+      <label class="block">Your invite link
+        <div class="row">
+          <input id="pf-invite" readonly>
+          <button id="pf-copy-invite" class="icon" title="Copy">⧉</button>
+        </div>
+      </label>
+      <p class="muted"><span id="pf-refcount">0</span> friends joined · +10 credits each (up to 100). To spend credits, pick <strong>Promptify Free</strong> as the provider in the main view.</p>
+      <button id="pf-signout">Sign out</button>
+    </div>
+  </section>
+
   <section class="card" id="profiles-card">
     <div class="eyebrow">Refinement</div>
     <div class="card-head">
@@ -99,6 +129,7 @@
 
   <div id="status"></div>
 
+  <script src="pf-config.js"></script>
   <script src="shared.js"></script>
   <script src="options.js"></script>
 </body>

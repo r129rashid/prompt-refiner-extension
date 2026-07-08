@@ -49,11 +49,14 @@
 
   <h2>What Promptify does with your data</h2>
   <ul>
-    <li><strong>No collection.</strong> Promptify has no servers, no analytics, no telemetry, and no tracking of any kind. We never see your prompts, your keys, or anything else.</li>
+    <li><strong>No collection in BYO-key mode.</strong> By default Promptify has no servers, no analytics, no telemetry, and no tracking. We never see your prompts, your keys, or anything else.</li>
     <li><strong>Your prompts</strong> are sent only to the AI provider <strong>you</strong> configure — OpenRouter or Anthropic — using <strong>your own API key</strong>, and only when you explicitly trigger a refinement. Those requests are governed by the respective provider's privacy policy.</li>
     <li><strong>Your API keys</strong> are stored in Chrome's local extension storage on your device and are sent only to the provider they belong to, as an authentication header.</li>
     <li><strong>Your history, snippet library, and settings</strong> are stored in Chrome's extension storage. Profiles, site pins, and your template use Chrome's built-in sync storage, handled by your Google account's Chrome Sync — not by us.</li>
   </ul>
+
+  <h2>Optional "Promptify Free" tier</h2>
+  <p>If — and only if — you explicitly sign in to the optional free-credits tier, refinements you run with the <strong>Promptify Free</strong> provider are sent to Promptify's own proxy (hosted on Supabase), which forwards them to OpenRouter using our key. We receive the prompt text transiently to fulfil the request and do <strong>not</strong> store prompt content — we keep only your account email, a running credit count, a referral code, and timestamped usage rows (no prompt text), the minimum needed to meter free usage and prevent abuse. This tier is entirely opt-in; if you never sign in, none of this applies and Promptify behaves exactly as described above. Signing out stops it, and your BYO-key usage is never routed through our proxy.</p>
 
   <h2>Permissions, in plain English</h2>
   <table>

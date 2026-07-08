@@ -10,7 +10,7 @@ mkdir -p dist
 rm -f "$OUT"
 zip -q "$OUT" \
   manifest.json \
-  background.js shared.js \
+  background.js shared.js pf-config.js \
   popup.html popup.js panel.html \
   options.html options.js \
   style.css \

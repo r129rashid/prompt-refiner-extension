@@ -1,4 +1,4 @@
-importScripts('shared.js');
+importScripts('pf-config.js', 'shared.js');
 
 chrome.runtime.onInstalled.addListener(async () => {
   await migrateStorage();
