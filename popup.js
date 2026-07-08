@@ -10,14 +10,20 @@ let currentOutput = ''; // active output (tweak/copy/save act on this)
 let currentInput = '';
 let draftTimer;
 
+// In the side panel, open Settings inside the dock; elsewhere fall back to a tab.
+function openSettings() {
+  if (document.body.classList.contains('panel')) location.href = 'options.html?from=panel';
+  else chrome.runtime.openOptionsPage();
+}
+
 async function init() {
   // First-run onboarding: no API key yet → welcome card instead of the form.
   const { keys } = await getConfig();
   if (!keys.openrouter && !keys.anthropic) {
     $('app').hidden = true;
     $('onboard').hidden = false;
-    $('onboard-cta').onclick = () => chrome.runtime.openOptionsPage();
-    $('open-options').onclick = () => chrome.runtime.openOptionsPage();
+    $('onboard-cta').onclick = openSettings;
+    $('open-options').onclick = openSettings;
     return;
   }
 
@@ -69,17 +75,7 @@ async function init() {
     syncSitePinToSelection();
   });
 
-  $('open-options').onclick = () => chrome.runtime.openOptionsPage();
-
-  // Side panel: feature-detect; popup only.
-  if (chrome.sidePanel && !document.body.classList.contains('panel')) {
-    $('open-panel').hidden = false;
-    $('open-panel').onclick = async () => {
-      const win = await chrome.windows.getCurrent();
-      await chrome.sidePanel.open({ windowId: win.id });
-      window.close();
-    };
-  }
+  $('open-options').onclick = openSettings;
 
   $('copy-btn').onclick = async () => {
     // Copies what's rendered, so it also works mid-stream.

@@ -27,7 +27,13 @@ let profilesState;
 let selectedId;
 
 async function init() {
-  $('done-btn').onclick = async () => {
+  $('back-btn').onclick = async () => {
+    // Opened inside the side panel → navigate back to the main view in the dock.
+    if (new URLSearchParams(location.search).get('from') === 'panel') {
+      location.href = 'panel.html';
+      return;
+    }
+    // Opened as a standalone tab (right-click → Options) → close the tab.
     try {
       const tab = await chrome.tabs.getCurrent();
       if (tab?.id) return chrome.tabs.remove(tab.id);

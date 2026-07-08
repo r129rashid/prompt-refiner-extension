@@ -30,6 +30,11 @@ body {
 body.popup { width: 400px; }
 body.panel { width: auto; min-width: 300px; }
 body.options { max-width: 620px; margin: 0 auto; padding: 32px 20px 48px; }
+/* Settings can render inside the narrow side panel (?from=panel) — keep it readable. */
+@media (max-width: 640px) {
+  body.options { padding: 16px 14px 32px; }
+  body.options h1 { font-size: 20px; margin-bottom: 16px; }
+}
 
 /* ---- wordmark + headers ---- */
 .wordmark {
@@ -49,6 +54,18 @@ body.options { max-width: 620px; margin: 0 auto; padding: 32px 20px 48px; }
   margin: -4px 0 12px;
 }
 .app-head .wordmark { font-size: 17px; margin: 0; flex: 1; }
+.app-head button.icon { font-size: 18px; }
+
+/* Settings Back button (top-left, larger glyph) */
+button.icon.back {
+  width: auto;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 12px;
+  padding: 6px 10px 6px 6px;
+}
+button.icon.back:hover { color: var(--text); }
 
 h1 { font-size: 24px; margin: 0 0 24px; font-family: var(--serif); font-weight: 600; text-wrap: balance; }
 h2 { font-size: 15px; margin: 0 0 4px; font-family: var(--serif); font-weight: 600; text-wrap: balance; }

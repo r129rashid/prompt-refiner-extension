@@ -3,8 +3,18 @@ importScripts('shared.js');
 chrome.runtime.onInstalled.addListener(async () => {
   await migrateStorage();
   queueMenuRebuild();
+  enableSidePanelAction();
 });
-chrome.runtime.onStartup.addListener(queueMenuRebuild);
+chrome.runtime.onStartup.addListener(() => {
+  queueMenuRebuild();
+  enableSidePanelAction();
+});
+
+// Clicking the toolbar icon opens the docked side panel (persists across tab
+// switches) instead of a popup that Chrome force-closes on focus loss.
+function enableSidePanelAction() {
+  chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
+}
 
 // Rebuild menus when profiles or library change (serialized to avoid duplicate-id races).
 chrome.storage.onChanged.addListener((changes, area) => {
