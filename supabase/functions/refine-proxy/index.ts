@@ -32,85 +32,94 @@ const json = (body: unknown, status: number, origin: string | null) =>
     headers: { 'Content-Type': 'application/json', ...cors(origin) },
   });
 
+class HttpError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
 Deno.serve(async (req) => {
   const origin = req.headers.get('origin');
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors(origin) });
+
+  // Hoisted so the single catch below can refund a spent credit on ANY failure.
+  let asUser: ReturnType<typeof createClient> | null = null;
+  let spent = false;
+
   try {
-  if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405, origin);
+    if (req.method !== 'POST') throw new HttpError(405, 'Method not allowed');
 
-  // --- auth: verify the caller's JWT ---
-  const authHeader = req.headers.get('authorization') || '';
-  const token = authHeader.replace(/^Bearer\s+/i, '');
-  if (!token) return json({ error: 'Sign in to use Promptify Free.' }, 401, origin);
+    // --- auth: verify the caller's JWT ---
+    const authHeader = req.headers.get('authorization') || '';
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    if (!token) throw new HttpError(401, 'Sign in to use Promptify Free.');
 
-  const asUser = createClient(SUPABASE_URL, ANON_KEY, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-  });
-  const { data: userData, error: userErr } = await asUser.auth.getUser();
-  if (userErr || !userData?.user) return json({ error: 'Session expired — sign in again.' }, 401, origin);
-
-  // --- validate input ---
-  let payload: { system?: string; user?: string; temperature?: number };
-  try {
-    payload = await req.json();
-  } catch {
-    return json({ error: 'Bad request.' }, 400, origin);
-  }
-  const system = String(payload.system || '');
-  const userMsg = String(payload.user || '');
-  if (!userMsg.trim()) return json({ error: 'Empty prompt.' }, 400, origin);
-  if (system.length + userMsg.length > MAX_INPUT * 2) return json({ error: 'Prompt too long.' }, 400, origin);
-
-  // --- spend a credit atomically (this is the gate; RLS uses the user's JWT) ---
-  const { data: left, error: spendErr } = await asUser.rpc('pf_spend_credit', { p_model: FREE_MODEL });
-  if (spendErr) {
-    const msg = spendErr.message || '';
-    if (msg.includes('no_credits'))
-      return json({ error: 'Out of free credits — invite a friend to earn more.' }, 402, origin);
-    if (msg.includes('rate_limited')) return json({ error: 'Slow down — try again in a moment.' }, 429, origin);
-    if (msg.includes('free_tier_disabled'))
-      return json({ error: 'Free tier is temporarily unavailable.' }, 503, origin);
-    return json({ error: 'Could not start refinement.' }, 500, origin);
-  }
-
-  // --- call OpenRouter with the SERVER key; refund on failure ---
-  const refund = () => asUser.rpc('pf_refund_credit');
-  let text = '';
-  try {
-    const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${OPENROUTER_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: FREE_MODEL,
-        temperature: payload.temperature ?? 0.3,
-        max_tokens: 2000,
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: userMsg },
-        ],
-      }),
+    asUser = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
     });
-    if (!r.ok) {
-      await refund();
-      return json({ error: 'Upstream model error — try again.' }, 502, origin);
+    const { data: userData, error: userErr } = await asUser.auth.getUser();
+    if (userErr || !userData?.user) throw new HttpError(401, 'Session expired — sign in again.');
+
+    // --- validate input ---
+    let payload: { system?: string; user?: string; temperature?: number };
+    try {
+      payload = await req.json();
+    } catch {
+      throw new HttpError(400, 'Bad request.');
     }
+    const system = String(payload.system || '');
+    const userMsg = String(payload.user || '');
+    if (!userMsg.trim()) throw new HttpError(400, 'Empty prompt.');
+    if (system.length + userMsg.length > MAX_INPUT * 2) throw new HttpError(400, 'Prompt too long.');
+
+    // --- spend a credit atomically (the gate; checks kill switch + rate limit + balance) ---
+    const { data: left, error: spendErr } = await asUser.rpc('pf_spend_credit', { p_model: FREE_MODEL });
+    if (spendErr) {
+      const m = spendErr.message || '';
+      if (m.includes('no_credits')) throw new HttpError(402, 'Out of free credits — invite a friend to earn more.');
+      if (m.includes('rate_limited')) throw new HttpError(429, 'Slow down — try again in a moment.');
+      if (m.includes('free_tier_disabled')) throw new HttpError(503, 'Free tier is temporarily unavailable.');
+      throw new HttpError(500, 'Could not start refinement.');
+    }
+    spent = true; // from here on, any failure refunds (in the catch below)
+
+    // --- call OpenRouter with the SERVER key ---
+    let r: Response;
+    try {
+      r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${OPENROUTER_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: FREE_MODEL,
+          temperature: payload.temperature ?? 0.3,
+          max_tokens: 2000,
+          messages: [
+            { role: 'system', content: system },
+            { role: 'user', content: userMsg },
+          ],
+        }),
+      });
+    } catch {
+      throw new HttpError(502, 'Network error reaching the model.');
+    }
+    if (!r.ok) throw new HttpError(502, 'Upstream model error — try again.');
     const data = await r.json();
-    text = data.choices?.[0]?.message?.content || '';
-    if (!text.trim()) {
-      await refund();
-      return json({ error: 'Model returned nothing — try again.' }, 502, origin);
-    }
-  } catch {
-    await refund();
-    return json({ error: 'Network error reaching the model.' }, 502, origin);
-  }
+    const text = data.choices?.[0]?.message?.content || '';
+    if (!text.trim()) throw new HttpError(502, 'Model returned nothing — try again.');
 
-  // --- confirm first successful use → credit the inviter (idempotent, capped) ---
-  // rpc() returns a thenable without a .catch method — await and swallow errors.
-  try { await asUser.rpc('pf_confirm_first_use'); } catch (_) { /* best-effort */ }
+    // Success — the credit is now truly earned. Confirm the referral (best-effort).
+    try { await asUser.rpc('pf_confirm_first_use'); } catch (_) { /* best-effort */ }
 
-  return json({ text, credits: left }, 200, origin);
+    return json({ text, credits: left }, 200, origin);
   } catch (e) {
-    return json({ error: `Server error: ${(e as Error)?.message || e}` }, 500, origin);
+    // Any failure AFTER the credit was spent → give it back. No charge without delivery.
+    if (spent && asUser) {
+      try { await asUser.rpc('pf_refund_credit'); } catch (_) { /* best-effort */ }
+    }
+    const status = e instanceof HttpError ? e.status : 500;
+    const message = e instanceof HttpError ? e.message : `Server error: ${(e as Error)?.message || e}`;
+    return json({ error: message }, status, origin);
   }
 });
