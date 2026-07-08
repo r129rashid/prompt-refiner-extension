@@ -49,6 +49,18 @@ async function init() {
   if (ui.lastOutput) showOutput(ui.lastOutput, ui.lastInput || '');
   showView(['history', 'library'].includes(ui.view) ? ui.view : 'home', false);
 
+  // A signed-in free user with no BYO key should spend credits by default —
+  // the saved profile still says "openrouter", which they have no key for.
+  const noByoKeys = !keys.openrouter && !keys.anthropic;
+  const coerceFreeProvider = () => {
+    if (pfIn && noByoKeys && $('provider').value !== 'promptify') {
+      $('provider').value = 'promptify';
+      picker.render($('model').value);
+    }
+  };
+  coerceFreeProvider();
+  setUiState({ params: readParams(), profileId: $('profile').value });
+
   renderHistory();
   renderLibrary();
 
@@ -73,6 +85,7 @@ async function init() {
   $('profile').addEventListener('change', () => {
     const p = profilesState.profiles[$('profile').value];
     if (p) applyParams(defaultParams(p.params), picker);
+    coerceFreeProvider();
     syncSitePinToSelection();
   });
 
