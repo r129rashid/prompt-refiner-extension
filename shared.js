@@ -131,6 +131,16 @@ async function getConfig() {
   return { ...sync, ...local };
 }
 
+// ---- popup/panel UI state (survives popup close; clears on browser restart) ----
+async function getUiState() {
+  return (await chrome.storage.session.get({ uiState: {} })).uiState;
+}
+
+async function setUiState(patch) {
+  const uiState = await getUiState();
+  await chrome.storage.session.set({ uiState: { ...uiState, ...patch } });
+}
+
 async function pushHistory(entry) {
   const { history } = await chrome.storage.local.get({ history: [] });
   history.unshift(entry);

@@ -275,6 +275,15 @@ label.check.x3, label.check.site { margin: 0; white-space: nowrap; }
 }
 .vcard .errtxt { color: #f87171; }
 
+/* ---- footer nav ---- */
+.footnav {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16px;
+}
+
 /* ---- onboarding ---- */
 .onboard {
   text-align: center;

@@ -58,6 +58,66 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   runRefineFlow(tab, info.selectionText, explicit ? id.slice(7) : null);
 });
 
+// ---- popup jobs: run refines in the worker so they survive the popup closing ----
+// The popup sends {type:'job', ...} and renders from chrome.storage.session's `job` key.
+let currentJobId = null;
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg?.type !== 'job') return;
+  runJob(msg).catch(() => {});
+  sendResponse({ ok: true });
+});
+
+async function runJob(msg) {
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  currentJobId = id;
+  const base = { id, kind: msg.kind, input: msg.input, params: msg.params, startedAt: Date.now() };
+  const setJob = (patch) => {
+    if (currentJobId !== id) return Promise.resolve(); // superseded by a newer job
+    return chrome.storage.session.set({ job: { ...base, ...patch } });
+  };
+
+  let lastWrite = 0;
+  const onToken = (text) => {
+    const now = Date.now();
+    if (now - lastWrite < 150) return;
+    lastWrite = now;
+    setJob({ status: 'running', output: text });
+  };
+
+  await setJob({ status: 'running' });
+  try {
+    if (msg.kind === 'single') {
+      const output = await refine(msg.input, msg.params, { onToken });
+      await setJob({ status: 'done', output });
+    } else if (msg.kind === 'tweak') {
+      const output = await tweak(msg.current, msg.instruction, msg.params, { onToken });
+      await setJob({ status: 'done', output });
+    } else if (msg.kind === 'variations') {
+      const temps = [0.3, 0.7, 0.9];
+      const results = temps.map(() => ({ status: 'running' }));
+      await setJob({ status: 'running', results });
+      await Promise.all(
+        temps.map((temperature, i) =>
+          new Promise((r) => setTimeout(r, i * 300))
+            .then(() => refine(msg.input, msg.params, { temperature, saveHistory: false }))
+            .then(
+              (output) => { results[i] = { status: 'done', output }; },
+              (e) => { results[i] = { status: 'error', error: e.message }; }
+            )
+            .then(() => setJob({ status: 'running', results }))
+        )
+      );
+      const anyOk = results.some((r) => r.status === 'done');
+      await setJob(anyOk
+        ? { status: 'done', results }
+        : { status: 'error', results, error: results.find((r) => r.error)?.error || 'All variations failed.' });
+    }
+  } catch (e) {
+    await setJob({ status: 'error', error: e.message });
+  }
+}
+
 // ---- keyboard shortcut (§2) ----
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command !== 'refine-selection') return;

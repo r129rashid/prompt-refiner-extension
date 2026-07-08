@@ -27,6 +27,14 @@ let profilesState;
 let selectedId;
 
 async function init() {
+  $('done-btn').onclick = async () => {
+    try {
+      const tab = await chrome.tabs.getCurrent();
+      if (tab?.id) return chrome.tabs.remove(tab.id);
+    } catch {}
+    window.close();
+  };
+
   const cfg = await getConfig();
   populateControls();
   picker = wireModelPicker({

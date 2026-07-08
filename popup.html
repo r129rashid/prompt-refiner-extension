@@ -7,6 +7,7 @@
 </head>
 <body class="popup">
   <header class="app-head">
+    <button id="back-btn" class="icon" title="Back" hidden>‹</button>
     <h1 class="wordmark">Promptify</h1>
     <button id="open-panel" class="icon" title="Open in side panel" hidden>❐</button>
     <button id="open-options" class="icon" title="Settings">⚙</button>
@@ -20,70 +21,78 @@
   </div>
 
   <main id="app">
-    <div class="row">
-      <select id="profile" title="Refinement profile"></select>
-      <label class="check site" id="site-pin-wrap" hidden>
-        <input type="checkbox" id="site-pin"> <span id="site-pin-label">use on this site</span>
-      </label>
-    </div>
-
-    <textarea id="input" rows="4" placeholder="Paste your rough prompt…"></textarea>
-
-    <details class="opts">
-      <summary>Refinement options</summary>
-      <div class="grid">
-        <label class="block">Role <select id="role"></select></label>
-        <label class="block">Format <select id="format"></select></label>
-        <label class="block">Length <select id="length"></select></label>
-        <label class="block">Tone <select id="tone"></select></label>
-        <label class="block">Audience <select id="audience"></select></label>
-      </div>
-      <div id="extras" class="extras"></div>
-      <div class="grid">
-        <label class="block">Provider <select id="provider"></select></label>
-        <label class="block">Model
-          <input id="model-filter" class="mini" placeholder="Filter models…">
-          <select id="model"></select>
+    <section id="view-home">
+      <div class="row">
+        <select id="profile" title="Refinement profile"></select>
+        <label class="check site" id="site-pin-wrap" hidden>
+          <input type="checkbox" id="site-pin"> <span id="site-pin-label">use on this site</span>
         </label>
       </div>
-      <label class="check"><input type="checkbox" id="free-only"> free models only</label>
-    </details>
 
-    <div class="row action">
-      <button id="refine-btn" class="primary">Refine</button>
-      <label class="check x3" title="Generate 3 variations"><input type="checkbox" id="variations"> ×3</label>
-    </div>
-    <div id="paid-note" class="muted" hidden>×3 sends 3 requests to a paid model.</div>
-    <div id="error" class="error"></div>
+      <textarea id="input" rows="4" placeholder="Paste your rough prompt…"></textarea>
 
-    <div id="cards" class="hidden"></div>
+      <details class="opts">
+        <summary>Refinement options</summary>
+        <div class="grid">
+          <label class="block">Role <select id="role"></select></label>
+          <label class="block">Format <select id="format"></select></label>
+          <label class="block">Length <select id="length"></select></label>
+          <label class="block">Tone <select id="tone"></select></label>
+          <label class="block">Audience <select id="audience"></select></label>
+        </div>
+        <div id="extras" class="extras"></div>
+        <div class="grid">
+          <label class="block">Provider <select id="provider"></select></label>
+          <label class="block">Model
+            <input id="model-filter" class="mini" placeholder="Filter models…">
+            <select id="model"></select>
+          </label>
+        </div>
+        <label class="check"><input type="checkbox" id="free-only"> free models only</label>
+      </details>
 
-    <div id="result" class="hidden">
-      <pre id="output" class="output"></pre>
-      <div class="row">
-        <button id="copy-btn">Copy</button>
-        <button id="save-lib-btn">Save to library</button>
+      <div class="row action">
+        <button id="refine-btn" class="primary">Refine</button>
+        <label class="check x3" title="Generate 3 variations"><input type="checkbox" id="variations"> ×3</label>
       </div>
-      <div class="row" id="save-lib-row" hidden>
-        <input id="save-lib-name" placeholder="Snippet name…">
-        <button id="save-lib-confirm">Save</button>
-      </div>
-      <div class="row">
-        <input id="tweak" placeholder="Tweak it… e.g. make it shorter">
-        <button id="tweak-btn" title="Apply tweak">↻</button>
-      </div>
-    </div>
+      <div id="paid-note" class="muted" hidden>×3 sends 3 requests to a paid model.</div>
+      <div id="error" class="error"></div>
 
-    <details class="opts">
-      <summary>History</summary>
+      <div id="cards" class="hidden"></div>
+
+      <div id="result" class="hidden">
+        <pre id="output" class="output"></pre>
+        <div class="row">
+          <button id="copy-btn">Copy</button>
+          <button id="save-lib-btn">Save to library</button>
+        </div>
+        <div class="row" id="save-lib-row" hidden>
+          <input id="save-lib-name" placeholder="Snippet name…">
+          <button id="save-lib-confirm">Save</button>
+        </div>
+        <div class="row">
+          <input id="tweak" placeholder="Tweak it… e.g. make it shorter">
+          <button id="tweak-btn" title="Apply tweak">↻</button>
+        </div>
+      </div>
+
+      <nav class="footnav">
+        <button id="nav-history" class="link">History</button>
+        <span class="muted">·</span>
+        <button id="nav-library" class="link">Library</button>
+      </nav>
+    </section>
+
+    <section id="view-history" hidden>
+      <div class="eyebrow">History</div>
       <ul id="history" class="list"></ul>
-    </details>
+    </section>
 
-    <details class="opts">
-      <summary>Library</summary>
+    <section id="view-library" hidden>
+      <div class="eyebrow">Library</div>
       <input id="lib-search" class="mini" placeholder="Search snippets…">
       <ul id="library" class="list"></ul>
-    </details>
+    </section>
   </main>
 
   <script src="shared.js"></script>
